@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI
 from .db.database import lifespan
 
 app = FastAPI(lifespan=lifespan)
@@ -12,4 +12,4 @@ app.include_router(todo_router)
 
 @app.get("/")
 async def read_root():
-    return {"message": "Hello, World!"}
+    return {"message": "Server Running!"}
