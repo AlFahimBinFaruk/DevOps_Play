@@ -1,5 +1,5 @@
-from sqlmodel import SQLModel, select, Session
-from fastapi.security import OAuth2PasswordBearer
+from sqlmodel import select, Session
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from .models import User
 from ..core.security import (
     hash_password,
@@ -11,7 +11,7 @@ from ..db.database import get_session
 
 from fastapi import HTTPException, Depends
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+bearer_scheme = HTTPBearer()
 
 
 def create_user(db: Session, username: str, password: str) -> User:
@@ -37,9 +37,11 @@ def get_access_token(user: User) -> str:
 
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme), db: Session = Depends(get_session)
+    creds: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    db: Session = Depends(get_session),
 ):
     try:
+        token = creds.credentials
         payload = decode_access_token(token)
         user_id = payload.get("user_id")
         if user_id is None:
