@@ -14,6 +14,8 @@ services:
   app:
     container_name: fastapi_app
     build: .
+    volumes:
+      - .:/app
     depends_on:
       - db
     env_file:
@@ -22,6 +24,7 @@ services:
       - "8000:8000"
     networks:
       - fastapi_network
+    restart: always
 
 volumes:
   postgres_data:
