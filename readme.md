@@ -1,11 +1,20 @@
 1. Run the server
 ```cmd
 docker compose up --build
+
+- Run with scaling
+docker compose up --scale fastapi_app=3
 ```
 2. Run the seeder(from your project root(outside src dir))
 ```cmd
 python3 -m src.scripts.seeder all
 ```
+
+3. Test Scaling
+```cmd
+python3 test-load-balancer.py
+```
+
 
 ### TODO
 - [x]  Setup Postgresql db with docker
