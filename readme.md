@@ -19,6 +19,14 @@ python3 -m src.scripts.seeder all
 python3 test-load-balancer.py
 ```
 
+4. Run migration
+
+```cmd
+alembic init migrations
+alembic revision --autogenerate -m "some comment"
+alembic upgrade head
+```
+
 ### TODO
 
 - [x] Setup Postgresql db with docker
