@@ -7,7 +7,7 @@ docker compose up --build
 docker compose up --scale fastapi_app=3
 ```
 
-2. Run the seeder(from your project root(outside src dir))
+2. Run the seeder(from your project root,outside src dir)
 
 ```cmd
 python3 -m src.scripts.seeder all
