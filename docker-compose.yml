@@ -39,21 +39,23 @@ services:
   prometheus:
     image: prom/prometheus
     container_name: prometheus
-    volumes:
-      - ./config/prometheus.yaml:/etc/prometheus/prometheus.yaml
     ports:
       - "9090:9090"
     networks:
       - fastapi_network
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
 
   loki:
     image: grafana/loki:latest
     container_name: loki
     ports:
       - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yml
     networks:
       - fastapi_network
+    volumes:
+      - ./config/loki.yml:/etc/loki/local-config.yml
 
   grafana:
     image: grafana/grafana:latest
@@ -67,6 +69,8 @@ services:
       - fastapi_network
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./config/grafana.yml:/etc/grafana/provisioning/datasources/datasource.yml
 
 volumes:
   postgres_data:

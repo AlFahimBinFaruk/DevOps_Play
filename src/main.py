@@ -8,7 +8,7 @@ import logging
 from logging_loki import LokiHandler
 
 
-# Loki handler
+# Loki configuration.
 logger = logging.getLogger("fastapi")
 logger.setLevel(logging.INFO)
 loki_handler = LokiHandler(
@@ -21,8 +21,57 @@ logger.addHandler(loki_handler)
 # Initialize app.
 app = FastAPI(lifespan=lifespan)
 
-# Prometheus Instrumentator
+
+# Using this middleware to log every request and response with LOKI.
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+import time
+
+
+class LoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.time()
+        response = await call_next(request)
+        process_time = (time.time() - start_time) * 1000
+
+        logger.info(
+            f"{request.method} {request.url.path}"
+            f"status: {response.status_code}"
+            f"Time: {process_time:.2f}ms"
+        )
+        return response
+
+
+app.add_middleware(LoggingMiddleware)
+
+
+# Prometheus configuration.
 Instrumentator().instrument(app).expose(app)
+
+# Custom prometheous metrics: how much time a req takes.
+from prometheus_client import Histogram
+
+REQUEST_TIME = Histogram(
+    "fastapi_request_duration_seconds",
+    "Time spent processing request",
+    ["method", "endpoint"],
+)
+
+
+class MetricsMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.time()
+        response = await call_next(request)
+        process_time = (time.time() - start_time) * 1000
+        REQUEST_TIME.labels(request.method, request.url.path).observe(process_time)
+        return response
+
+
+app.add_middleware(MetricsMiddleware)
+
+
+###*****************************###
+
 
 from .user.views import router as user_router
 from .todo.views import router as todo_router
@@ -33,7 +82,6 @@ app.include_router(todo_router)
 
 @app.get("/")
 async def read_root():
-    logger.info("Root endpoint was accessed.")
     return {"message": "Server Running!"}
 
 
