@@ -12,14 +12,23 @@ jobs:
             - name: checkout code
               uses: actions/checkout@v3
 
-            - name: Run SonarQube Scan
-              uses: sonarsource/sonarqube-scan-action@v1
-              env:
-                SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-                SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+            - name: Setup Python
+              uses: actions/setup-python@v4
+              with:
+                python-version: 3.11
+
+            - name: Install dependencies
+              run: | 
+                pip install -r requirements.txt
+                pip install pytest pytest-cov
             
-            - name: SonarQube Quality Gate
-              uses: sonarsource/sonarqube-quality-gate-action@v1
+            - name: Run test with coverage
+              run: |
+                pytest -q --maxfail=1 --disable-warnings --cov=src --cov-report=xml
+
+            - name: Run SonarQube Scan
+              uses: sonarsource/sonarcloud-github-action@v2
               env:
                 SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             
