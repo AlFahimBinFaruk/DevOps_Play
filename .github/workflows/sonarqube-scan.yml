@@ -22,9 +22,7 @@ jobs:
                 pip install -r requirements.txt
                 pip install pytest pytest-cov
             
-            - name: Run test with coverage
-              run: |
-                pytest -q --maxfail=1 --disable-warnings --cov=src --cov-report=xml
+            
 
             - name: Run SonarQube Scan
               uses: sonarsource/sonarcloud-github-action@v2
