@@ -11,16 +11,8 @@ jobs:
         steps:
             - name: checkout code
               uses: actions/checkout@v3
-
-            - name: Setup Python
-              uses: actions/setup-python@v4
               with:
-                python-version: 3.11
-
-            - name: Install dependencies
-              run: | 
-                pip install -r requirements.txt
-                pip install pytest pytest-cov
+                fetch-depth: 0
 
             - name: Run SonarQube Scan
               uses: sonarsource/sonarcloud-github-action@v2
