@@ -27,7 +27,7 @@ alembic revision --autogenerate -m "some comment"
 alembic upgrade head
 ```
 
-### TODO
+### Todo
 
 - [x] Setup Postgresql db with docker
 - [x] How to generate migration file
