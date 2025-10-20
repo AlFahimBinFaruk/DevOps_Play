@@ -1,0 +1,21 @@
+groups:
+  - name: fastapi_alerts
+    interval: 30s
+    rules:
+      - alert: APIDown
+        expr: up{job="fastapi"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "FastAPI Application is Down"
+          description: "FastAPI instance {{ $labels.instance }} has been unreachable for more than 1 minute."
+        
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95,rate(fastapi_request_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Response Time Detected"
+          description: "95th percentile response time is above 1 second for the last 5 minutes."

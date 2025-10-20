@@ -38,4 +38,5 @@ alembic upgrade head
 - [x] Reload every time something changes in file in docker version
 - [x] Issue ⇒ Cant find db at first => solved with restart
 - [x] Configured load balancer with nginx.
-- [x] Configured Prometheous,Grafana,Loki.
+- [x] Configured Prometheus,Grafana,Loki.
+- [x] Configured alerting in Prometheus with MS-Teams.
