@@ -82,7 +82,20 @@ services:
       - fastapi_network
     volumes:
       - ./config/loki.yml:/etc/loki/local-config.yml
-
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    command:
+      - '--config.file=/etc/tempo.yml'
+    volumes:
+      - ./config/tempo.yml:/etc/tempo.yml
+      - tempo_data:/tmp/data
+    ports:
+      - "3200:3200"   # tempo
+      - "4317:4317"   # otlp grpc
+      - "4318:4318"   # otlp http
+    networks:
+      - fastapi_network
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -91,6 +104,7 @@ services:
     depends_on:
       - prometheus
       - loki
+      - tempo
     networks:
       - fastapi_network
     environment:
@@ -100,6 +114,7 @@ services:
 
 volumes:
   postgres_data:
+  tempo_data:
 
 networks:
   fastapi_network:

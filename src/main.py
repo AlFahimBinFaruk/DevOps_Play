@@ -22,6 +22,8 @@ logger.addHandler(loki_handler)
 app = FastAPI(lifespan=lifespan)
 
 
+
+
 # Using this middleware to log every request and response with LOKI.
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -68,6 +70,15 @@ class MetricsMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(MetricsMiddleware)
+
+
+
+
+
+# OpenTelemetry configuration.
+from .tracing import setup_telemetry
+
+tracer = setup_telemetry(app)
 
 
 ###*****************************###
