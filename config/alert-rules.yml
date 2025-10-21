@@ -1,10 +1,10 @@
 groups:
   - name: fastapi_alerts
-    interval: 30s
+    interval: 30s # prometheus will check the rules every 30 seconds.
     rules:
       - alert: APIDown
-        expr: up{job="fastapi"} == 0
-        for: 1m
+        expr: up{job="fastapi"} == 0 # define the rules which we want to monitor.
+        for: 1m # if the condition is true for 1 minute, then the alert will be triggered.
         labels:
           severity: critical
         annotations:

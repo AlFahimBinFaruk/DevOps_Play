@@ -1,15 +1,21 @@
+# start a global alertmanager.
 global:
-  resolve_timeout: 5m
+  resolve_timeout: 5m # How long alertmanager will wait before marking the alert as resolved, if it stops receiving them.
 
+
+
+# Top level routing tree that controls how alerts are gouped and sent.
 route:
-  group_by: ['alertname','severity']
-  group_wait: 30s
-  group_interval: 10s
-  repeat_interval: 12h
+  group_by: ['alertname','severity'] # alert sharing these lables are grouped into single notification.
+  group_wait: 30s # for each group, wait 30 sec before sending the notification,so more notification can be sent together.
+  group_interval: 10s # minimum time between the notification for the same group after the first one.
+  repeat_interval: 12h # resend unresolved alert in the same group every 12 hours.
   receiver: 'msteams'
+
+
 
 receivers:
   - name: 'msteams'
     webhook_configs:
       - url: 'http://prometheus-msteams:2000/alertmanager'
-        send_resolved: true
+        send_resolved: true # also send notification when the alert is resolved.
