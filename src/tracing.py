@@ -39,7 +39,7 @@ def setup_telemetry(app,engine=None):
     processor = BatchSpanProcessor(otlp_exporter)
     provider.add_span_processor(processor)
 
-    # set the tracer provider
+    # set the tracer provider(default)
     trace.set_tracer_provider(provider)
 
     # Instrumentation

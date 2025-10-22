@@ -20,4 +20,5 @@ datasources:
     jsonData:
       httpMethod: GET
       serviceMap:
+        # this tells grafana to create the service-map use metrics from prometheus as prometheus is scrapping tempo.
         datasourceUid: prometheus

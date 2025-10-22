@@ -1,8 +1,12 @@
 server:
+  # tempo's http api will listen on this port for queries and internal communication.
+  # in out setup prometheus will use this endpoint to scrape metrics that tempo got from OTEL.
   http_listen_port: 3200
 
 
+
 distributor:
+  # define which protocols can send traces to tempo.
   receivers:
     otlp:
       protocols:
@@ -12,42 +16,53 @@ distributor:
           endpoint: 0.0.0.0:4317
 
 
+
+# component that batches traces and writes then to storage.
 ingester:
+  # traces are batched into blocks every 5min before being written to storage.
   max_block_duration: 5m
 
 
+
+# component that manages and compacts trace blocks.
 compactor:
   compaction:
+    # traces are being kept for 1hr before being deleted(prod time will be longer.)
     block_retention: 1h
 
 
+
+# where traces are being stored.
 storage:
   trace:
-    backend: local
-    wal:
+    backend: local # use local filesystem(alt: s3,gcs,azure,etc.)
+    wal: # write ahead log(helps in recovery after crashes.)
       path: /tmp/tempo/wal
-    local:
+    local: # where actual trace blocks are stored.
       path: /tmp/tempo/blocks
 
 
 
-
-
-
-
 # Add metrics generator configuration.
+# Generates RED(Rate,Errors,Duration) metrics from traces.
 metrics_generator:
   registry:
     external_labels:
       source: tempo
       cluster: docker compose
+  # metrics generator maintains it's own WAL.
   storage:
     path: /tmp/tempo/generator/wal
+  # processor defines how traces are transformed into metrics.
   processor:
+    # creates a service dependency map showing which services call which other services.
+    # because of this we can get metrics like: count of req between services, count of failed req.
     service_graphs:
+      # filter the data based on these dimensions.
       dimensions:
         - http.method
         - http.status_code
+    # generates RED metrics for every endpoint/operation.
     span_metrics:
       dimensions:
         - http.method
@@ -55,6 +70,7 @@ metrics_generator:
         - http.status_code
     
 
+# Component that handles trace queries.
 query_frontend:
   search:
     default_result_limit: 20
