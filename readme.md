@@ -13,13 +13,7 @@ docker compose up --scale fastapi_app=3
 python3 -m src.scripts.seeder all
 ```
 
-3. Test Scaling
-
-```cmd
-python3 test-load-balancer.py
-```
-
-4. Run migration
+3. Run migration
 
 ```cmd
 alembic init migrations
@@ -27,6 +21,11 @@ alembic revision --autogenerate -m "some comment"
 alembic upgrade head
 ```
 
+4. Test Scaling
+
+```cmd
+python3 test-load-balancer.py
+```
 ### Todo
 
 - [x] Setup Postgresql db with docker
