@@ -1,0 +1,35 @@
+services:
+  postgres_db:
+    container_name: postgres_db
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - fastapi_network
+
+  fastapi_app:
+    # container_name: fastapi_app - don't set it if you are using scaling
+    build: .
+    volumes:
+      - .:/app
+    depends_on:
+      - postgres_db
+    env_file:
+      - .env
+    expose:
+      - "5000" # don't directly map if you are using scaling
+    networks:
+      - fastapi_network
+    restart: always
+  
+
+volumes:
+  postgres_data:
+
+networks:
+  fastapi_network:
+    external: true
