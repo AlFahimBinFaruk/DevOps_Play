@@ -8,8 +8,6 @@ import os
 
 # Make sure to import the model to create tables
 from ..user.models import User
-from ..todo.models import Todo
-from ..test.models import TestTwo
 
 load_dotenv()
 

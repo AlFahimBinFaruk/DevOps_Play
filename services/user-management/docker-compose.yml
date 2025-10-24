@@ -11,7 +11,7 @@ services:
     networks:
       - fastapi_network
 
-  fastapi_app:
+  user-management:
     # container_name: fastapi_app - don't set it if you are using scaling
     build: .
     volumes:
