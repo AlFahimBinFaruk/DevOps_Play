@@ -8,8 +8,6 @@ from sqlalchemy.orm import sessionmaker
 
 # Import your models
 from ..user.models import User
-from ..todo.models import Todo
-from ..test.models import Test
 from ..core.security import hash_password  # Import your hash function
 
 # Load environment variables
@@ -74,68 +72,6 @@ def seed_users():
         db.close()
 
 
-def seed_todos():
-    """Seed sample todos for existing users."""
-    db = get_db_session()
-    try:
-        # Check if todos already exist
-        existing_todos = db.exec(select(Todo)).all()
-
-        if len(existing_todos) == 0:
-            # Get some users to assign todos to
-            users = db.exec(select(User)).all()
-
-            if users:
-                sample_todos = [
-                    {
-                        "title": "Complete project setup",
-                        "description": "Set up FastAPI project with authentication",
-                        "owner_id": users[0].id if users else None,
-                    },
-                    {
-                        "title": "Implement user authentication",
-                        "description": "Add JWT token-based authentication system",
-                        "owner_id": users[0].id if users else None,
-                    },
-                    {
-                        "title": "Create todo endpoints",
-                        "description": "Build CRUD endpoints for todo management",
-                        "owner_id": users[0].id if users else None,
-                    },
-                    {
-                        "title": "Write documentation",
-                        "description": "Document all API endpoints",
-                        "owner_id": users[1].id if len(users) > 1 else users[0].id,
-                    },
-                    {
-                        "title": "Add database seeding",
-                        "description": "Create seeder script for initial data",
-                        "owner_id": users[1].id if len(users) > 1 else users[0].id,
-                    },
-                ]
-
-                for todo_data in sample_todos:
-                    todo = Todo(
-                        title=todo_data["title"],
-                        description=todo_data["description"],
-                        owner_id=todo_data["owner_id"],
-                    )
-
-                    db.add(todo)
-
-                db.commit()
-                print("✅ Sample todos seeded successfully!")
-            else:
-                print("❌ No users found. Please seed users first.")
-        else:
-            print("ℹ️  Todos already exist, skipping todo seeding...")
-
-    except Exception as e:
-        print(f"❌ Error seeding todos: {e}")
-        db.rollback()
-    finally:
-        db.close()
-
 
 def seed_admin_only():
     """Seed only admin user."""
@@ -176,7 +112,6 @@ def run_all_seeders():
 
     # Seed in order (users first, then related data)
     seed_users()
-    seed_todos()
 
     print("-" * 50)
     print("🎉 Database seeding completed!")
@@ -191,8 +126,6 @@ def clear_all_data():
         db = get_db_session()
         try:
             # Delete in reverse order to respect foreign keys
-            db.exec(select(Todo)).delete()
-            db.exec(select(Test)).delete()
             db.exec(select(User)).delete()
 
             db.commit()
@@ -236,8 +169,6 @@ if __name__ == "__main__":
         run_all_seeders()
     elif command == "users":
         seed_users()
-    elif command == "todos":
-        seed_todos()
     elif command == "admin":
         seed_admin_only()
     elif command == "clear":

@@ -48,6 +48,7 @@ app.add_middleware(LoggingMiddleware)
 
 
 # Prometheus configuration.
+# This will instrument the app and expose the metrics on the "/metrics" endpoint. from where prometheus will scrap the metrics.
 Instrumentator().instrument(app).expose(app)
 
 # Custom prometheous metrics: how much time a req takes.
@@ -85,9 +86,10 @@ tracer = setup_telemetry(app)
 
 
 from .user.views import router as user_router
+from .user.views import internal_router as user_internal_router
 
 app.include_router(user_router)
-
+app.include_router(user_internal_router)
 
 @app.get("/")
 async def read_root():

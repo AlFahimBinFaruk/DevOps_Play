@@ -1,23 +1,23 @@
 services:
-  postgres_db:
-    container_name: postgres_db
-    image: postgres:latest
+  mongodb:
+    container_name: mongodb
+    image: mongo:7-jammy
     ports:
-      - "5432:5432"
+      - "27017:27017"
     env_file:
       - .env
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mongodb_data:data/db
     networks:
       - fastapi_network
 
-  fastapi_app:
+  note-management:
     # container_name: fastapi_app - don't set it if you are using scaling
     build: .
     volumes:
       - .:/app
     depends_on:
-      - postgres_db
+      - mongodb
     env_file:
       - .env
     expose:
@@ -25,96 +25,10 @@ services:
     networks:
       - fastapi_network
     restart: always
-  nginx:
-    container_name: nginx
-    image: nginx:alpine
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-    depends_on:
-      - fastapi_app
-    networks:
-      - fastapi_network
-  prometheus:
-    image: prom/prometheus
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    networks:
-      - fastapi_network
-    volumes:
-      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./config/alert-rules.yml:/etc/prometheus/alert-rules.yml
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-  alertmanager:
-    image: prom/alertmanager:latest
-    container_name: alertmanager
-    ports:
-      - "9093:9093"
-    networks:
-      - fastapi_network
-    volumes:
-      - ./config/alertmanager.yml:/etc/alertmanager/alertmanager.yml
-    command:
-      - '--config.file=/etc/alertmanager/alertmanager.yml'
-      - '--storage.path=/alertmanager'
-  prometheus-msteams:
-    image: quay.io/prometheusmsteams/prometheus-msteams:latest
-    container_name: prometheus-msteams
-    env_file:
-      - .env
-    ports:
-      - "2000:2000"
-    networks:
-      - fastapi_network
-  loki:
-    image: grafana/loki:latest
-    container_name: loki
-    ports:
-      - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yml
-    networks:
-      - fastapi_network
-    volumes:
-      - ./config/loki.yml:/etc/loki/local-config.yml
-  tempo:
-    image: grafana/tempo:latest
-    container_name: tempo
-    command:
-      - '--config.file=/etc/tempo.yml'
-    volumes:
-      - ./config/tempo.yml:/etc/tempo.yml
-      - tempo_data:/tmp/data
-    ports:
-      - "3200:3200"   # tempo
-      - "4317:4317"   # otlp grpc
-      - "4318:4318"   # otlp http
-    networks:
-      - fastapi_network
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    ports:
-      - "3000:3000"
-    depends_on:
-      - prometheus
-      - loki
-      - tempo
-    networks:
-      - fastapi_network
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - ./config/grafana.yml:/etc/grafana/provisioning/datasources/datasource.yml
+  
 
 volumes:
-  postgres_data:
-  tempo_data:
+  mongodb_data:
 
 networks:
   fastapi_network:

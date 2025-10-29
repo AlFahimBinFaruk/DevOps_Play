@@ -56,3 +56,18 @@ def get_current_user(
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+
+def validate_token(token: str, db: Session = Depends(get_session)):
+    try:
+        payload = decode_access_token(token)
+        user_id = payload.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+        
+        user= db.exec(select(User).where(User.id == user_id)).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return user
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=str(e))
