@@ -1,0 +1,39 @@
+services:
+  postgres_db:
+    container_name: postgres_db
+    image: postgres:16-alpine
+    ports:
+      - "5433:5432"
+    env_file:
+      - .env
+    volumes:
+      - request_tracker_postgres_data:/var/lib/postgresql/data
+    networks:
+      - fastapi_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  request-tracker:
+    build: .
+    volumes:
+      - .:/app
+    depends_on:
+      tracker-db:
+        condition: service_healthy
+    env_file:
+      - .env
+    networks:
+      - fastapi_network
+    restart: always
+
+
+volumes:
+  request_tracker_postgres_data:
+
+networks:
+  fastapi_network:
+    external: true
+    
