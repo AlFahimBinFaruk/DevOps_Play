@@ -12,7 +12,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 from ..tracker.models import RequestLog
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def database_lifespan(app: FastAPI):
     """
     Lifespan context manager for database initialization
     This executes before the application starts and after it stops

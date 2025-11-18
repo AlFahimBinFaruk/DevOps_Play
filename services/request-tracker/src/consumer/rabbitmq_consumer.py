@@ -2,18 +2,19 @@ import pika
 import json
 import time
 import os
-from sqlmodel import Session
-from ..tracker.models import RequestLog
 from ..tracker.schemas import RequestTrackingMessage
 from ..tracker.services import create_request_log
-from ..geo.ip_geolocation import get_getlocation
+from ..geo.ip_geolocation import get_geolocation
 from ..db.database import get_session
+import logging
+
+logger=logging.getLogger(__name__)
 
 class RabbitMQConsumer:
     def __init__(self):
         self.rabbitmq_url=os.getenv("RABBITMQ_URL")
-        self.queue_name=os.getenv("RABBITMQ_QUEUE_NAME")
-        self.exchange_name=os.getenv("RABBITMQ_EXCHANGE_NAME")
+        self.queue_name=os.getenv("RABBITMQ_QUEUE")
+        self.exchange_name=os.getenv("RABBITMQ_EXCHANGE")
         self.connection=None
         self.channel=None
         self.max_retries=3
@@ -30,7 +31,7 @@ class RabbitMQConsumer:
                 self.channel.exchange_declare(
                     exchange=self.exchange_name,
                     exchange_type="fanout",
-                    durable=True
+                    durable=True # durable means the exchange will not be deleted when the RabbitMQ server is restarted.
                 )
                 # Declare queue
                 self.channel.queue_declare(
@@ -66,15 +67,16 @@ class RabbitMQConsumer:
                     queue=f"{self.queue_name}_dlq"
                 )
 
-                # set prefetch count
+                # rabbitmq will send 10 messages to the consumer at a time.
+                # won't send the 11th message until the consumer acknowledges the one of theprevious 10 message.
                 self.channel.basic_qos(prefetch_count=10)
 
-                print("✅ Connected to RabbitMQ")
+                logger.info("✅ Connected to RabbitMQ")
                 return True
 
             except Exception as e:
                 retries+=1
-                print(f"❌ Failed to connect to RabbitMQ (attempt {retries}/{self.max_retries}): {e}")
+                logger.error(f"❌ Failed to connect to RabbitMQ (attempt {retries}/{self.max_retries}): {e}")
                 time.sleep(5)
         
         raise Exception(f"❌ Failed to connect to RabbitMQ after {self.max_retries} attempts")
@@ -85,7 +87,7 @@ class RabbitMQConsumer:
             message_data=json.loads(body)
             message=RequestTrackingMessage(**message_data)
 
-            geo_data=get_getlocation(message.client_ip) if message.client_ip else {
+            geo_data=get_geolocation(message.client_ip) if message.client_ip else {
                 "country": None,
                 "city": None,
                 "latitude": None,
@@ -97,12 +99,12 @@ class RabbitMQConsumer:
                     db_session=next(get_session())
                     request_log=create_request_log(db_session,message,geo_data)
                     ch.basic_ack(delivery_tag=method.delivery_tag)
-                    print(f"✅ Successfully processed: {message.method} {message.path} - {message.status_code}")
+                    logger.info(f"✅ Successfully processed: {message.method} {message.path} - {message.status_code}")
                     db_session.close()
                     return
                 except Exception as db_error:
                     retries+=1
-                    print(f"⚠️ Database error (attempt {retries}/{self.max_retries}): {db_error}")
+                    logger.error(f"⚠️ Database error (attempt {retries}/{self.max_retries}): {db_error}")
                     if db_session:
                         db_session.close()
                     
@@ -111,16 +113,16 @@ class RabbitMQConsumer:
                     else:
                         # Send to DLQ after max retries
                         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
-                        print(f"❌ Message sent to DLQ after {self.max_retries} failed attempts")
+                        logger.error(f"❌ Message sent to DLQ after {self.max_retries} failed attempts")
 
         except Exception as e:
-            print(f"❌ Error processing message: {e}")
+            logger.error(f"❌ Error processing message: {e}")
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
             return
 
     def start_consuming(self):
         try:
-            print("✅ Starting to consume messages from RabbitMQ")
+            logger.info("✅ Starting to consume messages from RabbitMQ")
             self.channel.basic_consume(
                 queue=self.queue_name,
                 on_message_callback=self.process_message,
@@ -128,13 +130,13 @@ class RabbitMQConsumer:
             )
             self.channel.start_consuming()
         except KeyboardInterrupt:
-            print("❌ Keyboard interrupt detected. Shutting down...")
+            logger.error("❌ Keyboard interrupt detected. Shutting down...")
             self.stop()
         except Exception as e:
-            print(f"❌ Error starting consumer: {e}")
+            logger.error(f"❌ Error starting consumer: {e}")
             raise
 
     def stop(self):
         if self.connection and not self.connection.is_closed:
             self.connection.close()
-            print("✅ RabbitMQ Connection closed")
+            logger.info("✅ RabbitMQ Connection closed")

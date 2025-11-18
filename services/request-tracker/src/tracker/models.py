@@ -1,4 +1,5 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field,Column
+from sqlalchemy import Text
 from typing import Optional
 from datetime import datetime
 
@@ -22,7 +23,7 @@ class RequestLog(SQLModel, table=True):
     # Request info
     method: str = Field(max_length=10, nullable=False)
     path: str = Field(max_length=500, nullable=False, index=True)
-    query_params: Optional[str] = Field(default=None, sa_column_kwargs={"type_": "Text"})
+    query_params: Optional[str] = Field(default=None, sa_column=Column(Text,nullable=True))
     
     # Client info
     client_ip: Optional[str] = Field(default=None, max_length=45)  # IPv6 can be up to 45 chars

@@ -1,3 +1,14 @@
+## Project structure
+```md
+Note_Taker
+    - services
+        - user-management
+        - monitoring(these will have all the logging,monitoring,tracing)
+        - note-management
+        - service-discovery(this will contain the nginx configuration)
+```
+
+
 1. Run the server
 
 ```cmd
@@ -39,13 +50,5 @@ python3 test-load-balancer.py
 - [x] Configured load balancer with nginx.
 - [x] Configured Prometheus,Grafana,Loki.
 - [x] Configured alerting in Prometheus with MS-Teams.
+- [] Shell script for up/down all services at once.
 
-## Project structure
-```md
-Note_Taker
-    - services
-        - user-management
-        - monitoring(these will have all the logging,monitoring,tracing)
-        - note-management
-        - service-discovery(this will contain the nginx configuration)
-```

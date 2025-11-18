@@ -1,7 +1,7 @@
 import requests
 from typing import Optional,Dict
 
-def get_getlocation(ip:str) -> Dict[str,Optional[str]]:
+def get_geolocation(ip:str) -> Dict[str,Optional[str]]:
     """
     Get geolocation from IP address using ip-api.com (free, no API key needed)
     Returns dict with country, city, lat, lon or None values

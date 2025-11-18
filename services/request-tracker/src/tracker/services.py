@@ -1,7 +1,6 @@
 from sqlmodel import select, Session, func
 from .models import RequestLog
 from .schemas import RequestTrackingMessage
-from ..geo.ip_geolocation import get_getlocation
 from datetime import datetime
 from typing import List, Dict, Optional
 
